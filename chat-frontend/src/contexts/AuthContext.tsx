@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, AuthResponse } from '../types/user';
+import { User } from '../types/user';
 import * as authApi from '../api/auth';
 
 interface AuthContextType {
@@ -25,11 +25,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const checkAuth = async () => {
       try {
         console.log('Checking authentication status...');
-        
+
         // Kiểm tra access token trong cookie
         const cookies = document.cookie.split(';');
         let jwtToken = null;
-        
+
         for (let i = 0; i < cookies.length; i++) {
           const cookie = cookies[i].trim();
           if (cookie.startsWith('jwt=')) {
@@ -37,33 +37,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             break;
           }
         }
-        
+
         // Nếu không có JWT token trong cookie, kiểm tra localStorage
         const savedUser = localStorage.getItem('chatUser');
-        
+
         if (!jwtToken && !savedUser) {
           console.log('No authentication found in cookies or localStorage');
           setLoading(false);
           return;
         }
-        
+
         if (jwtToken) {
           console.log('Found JWT token in cookies, attempting to refresh...');
         } else if (savedUser) {
           console.log('Found saved user in localStorage, attempting to validate...');
         }
-        
+
         // Thử refresh token
         const userData = await authApi.refreshToken();
         console.log('Token refresh successful:', userData);
-        
+
         if (userData && userData.id) {
           const user = {
             id: userData.id,
             username: userData.username
           };
           setUser(user);
-          
+
           // Lưu thông tin user vào localStorage để phòng khi cookie bị xóa
           localStorage.setItem('chatUser', JSON.stringify(user));
         } else {
